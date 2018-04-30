@@ -18,3 +18,4 @@
 # Access rules
 #"Catch All" <sip:*@*>;access=block
 #"Good Friend" <sip:good@friend.com>;access=allow
+"aa" <sip:a@192.168.2.213>;access=allow

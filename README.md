@@ -1,3 +1,7 @@
+This is a fork of https://github.com/juha-h/baresip-studio.github
+
+Thanks Juha for your work.
+
 This is very basic Android Studio baresip project.
 
 Includes PCMU/PCMA and opus codecs as well as ZRTP media encapsulation.

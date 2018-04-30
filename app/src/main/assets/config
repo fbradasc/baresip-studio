@@ -9,7 +9,7 @@ poll_method		epoll		# poll, select, epoll ..
 
 # SIP
 sip_trans_bsize		128
-#sip_listen		0.0.0.0:5060
+sip_listen		0.0.0.0:5060
 #sip_certificate	cert.pem
 
 # Call
@@ -17,6 +17,7 @@ call_local_timeout	120
 call_max_calls	4
 
 # Audio
+#audio_path		/usr/local/share/baresip
 audio_player		opensles,nil
 audio_source		opensles,nil
 audio_alert		    opensles,nil
@@ -26,15 +27,21 @@ audio_channels		1-2
 #auplay_srate		48000
 #ausrc_channels		0
 #auplay_channels	0
+#audio_txmode		poll		# poll, thread
 audio_level		    no
+ausrc_format		s16		# s16, float, ..
+auplay_format		s16		# s16, float, ..
+auenc_format		s16		# s16, float, ..
+audec_format		s16		# s16, float, ..
 
 # Video
 #video_source		v4l2,/dev/video0
 #video_display		x11,nil
 video_size		    352x288
 video_bitrate		500000
-video_fps		    25
+video_fps		25.00
 video_fullscreen	yes
+videnc_format		yuv420p
 
 # AVT - Audio/Video Transport
 rtp_tos			184
@@ -56,6 +63,8 @@ rtp_stats		no
 #------------------------------------------------------------------------------
 # Modules
 
+#module_path		/usr/local/lib64/baresip/modules
+
 # UI Modules
 #module			stdio.so
 #module			cons.so
@@ -63,15 +72,16 @@ rtp_stats		no
 #module			httpd.so
 
 # Audio codec Modules (in order)
-module			opus.so
+#-module			opus.so
 #module			silk.so
 #module			amr.so
 #module			g7221.so
 #module			g722.so
 #module			g726.so
-module			g711.so
+#-module			g711.so
 #module			gsm.so
 #module			l16.so
+#module			speex.so
 #module			bv32.so
 #module			mpa.so
 #module			codec2.so
@@ -81,10 +91,12 @@ module			g711.so
 # Audio filter Modules (in encoding order)
 #module			vumeter.so
 #module			sndfile.so
+#module			speex_aec.so
+#module			speex_pp.so
 #module			plc.so
 
 # Audio driver Modules
-module			opensles.so
+#-module			opensles.so
 #module			jack.so
 #module			portaudio.so
 #module			aubridge.so
@@ -144,6 +156,7 @@ module_tmp		account.so
 # Application Modules
 
 module_app		auloop.so
+#module_app		b2bua.so
 module_app		contact.so
 module_app		debug_cmd.so
 #module_app		dtmfio.so
@@ -154,6 +167,8 @@ module_app		menu.so
 #module_app		natbd.so
 #module_app		presence.so
 #module_app		syslog.so
+#module_app		mqtt.so
+#module_app		ctrl_tcp.so
 module_app		vidloop.so
 
 
@@ -165,7 +180,19 @@ cons_listen		0.0.0.0:5555
 
 http_listen		0.0.0.0:8000
 
+ctrl_tcp_listen		0.0.0.0:4444
+
 evdev_device	/dev/input/event0
+
+# Speex codec parameters
+speex_quality		7 # 0-10
+speex_complexity	7 # 0-10
+speex_enhancement	0 # 0-1
+speex_mode_nb		3 # 1-6
+speex_mode_wb		6 # 1-6
+speex_vbr		0 # Variable Bit Rate 0-1
+speex_vad		0 # Voice Activity Detection 0-1
+speex_agc_level		8000
 
 # Opus codec parameters
 opus_bitrate		28000 # 6000-510000
@@ -181,6 +208,9 @@ ice_turn		no
 ice_debug		no
 ice_nomination	regular	# {regular,aggressive}
 ice_mode		full	# {full,lite}
+
+# ZRTP
+#zrtp_hash		no  # Disable SDP zrtp-hash (not recommended)
 
 # Menu
 #redial_attempts	3 # Num or <inf>
