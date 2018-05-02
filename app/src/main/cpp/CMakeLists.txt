@@ -79,6 +79,7 @@ target_link_libraries(baresip
                       lib_opus
                       lib_bn
                       lib_zrtp
+                      lib_bn
                       lib_ogg
                       z
                       log)

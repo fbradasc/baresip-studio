@@ -157,6 +157,8 @@ static int runLoggingThread() {
     dup2(pfd[1], 1);
     dup2(pfd[1], 2);
 
+    log_enable_debug(true);
+
     if (pthread_create(&loggingThread, 0, loggingFunction, 0) == -1) {
         return -1;
     }

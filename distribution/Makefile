@@ -1,4 +1,4 @@
-MODULES := openssl opus ogg libzrtp rem re baresip retest
+MODULES := openssl opus ogg libzrtp rem re baresip
 
 PATCHES     := re_types.h
 
@@ -123,15 +123,14 @@ ifneq ("$(wildcard $(PWD)/libzrtp)","")
 	EXTRA_MODULES := $(EXTRA_MODULES) zrtp
 endif
 
-build: prepare $(TOBUILD) libbaresip.a_build selftest_build
+build: prepare $(TOBUILD)
 
 .PHONY: rem_build re_build
 rem_build re_build: Makefile
 	@rm -f $(@:_build=)/lib$(@:_build=).*
 	@make lib$(@:_build=).a -C $(@:_build=) $(COMMON_FLAGS)
 
-.PHONY: baresip_build libbaresip_build
-baresip_build libbaresip.a_build:	Makefile
+libbaresip.a_build:	Makefile
 	@rm -f baresip/$(@:_build=) baresip/src/static.c
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/usr/lib/pkgconfig" \
 	make $(@:_build=) -C baresip $(COMMON_FLAGS) STATIC=1 \
@@ -139,19 +138,14 @@ baresip_build libbaresip.a_build:	Makefile
 	        MOD_AUTODETECT= \
 		EXTRA_MODULES="$(EXTRA_MODULES)"
 
-.PHONY: selftest_build
-selftest_build:	Makefile
-	@rm -f baresip/selftest baresip/src/static.c
+.PHONY: baresip_build
+baresip_build: libbaresip.a_build Makefile
+	@rm -f baresip/$(@:_build=) baresip/src/static.c
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/usr/lib/pkgconfig" \
-	make selftest -C baresip $(COMMON_FLAGS) STATIC=1 \
+	make $(@:_build=) -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-	        MOD_AUTODETECT=
-
-.PHONY: selftest
-selftest: selftest_build
-	$(ADB) push baresip/selftest $(TARGET_PATH)/selftest
-	$(ADB) shell "cd $(TARGET_PATH) && ./selftest "
-
+	        MOD_AUTODETECT= \
+		EXTRA_MODULES="$(EXTRA_MODULES)"
 
 install:	baresip_build
 	$(ADB) push baresip/baresip $(TARGET_PATH)/baresip
@@ -266,18 +260,6 @@ dump:
 #
 # additional targets for `retest'
 #
-
-.PHONY: retest_build
-retest_build:	Makefile
-	@rm -f $(@:_build=)/$(@:_build=)
-	@make $(@:_build=) -C  $(@:_build=) $(COMMON_FLAGS) LIBRE_SO=$(PWD)/re \
-		LIBREM_PATH=$(PWD)/rem
-
-.PHONY: test
-test: retest_build
-	$(ADB) push retest/retest $(TARGET_PATH)/retest
-	$(ADB) push retest/data/. $(TARGET_PATH)/data
-	$(ADB) shell "cd $(TARGET_PATH) && ./retest -r -v"
 
 .PHONY: toolchain
 toolchain:

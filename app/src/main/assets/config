@@ -72,16 +72,16 @@ rtp_stats		no
 #module			httpd.so
 
 # Audio codec Modules (in order)
-#-module			opus.so
+module			opus.so
 #module			silk.so
 #module			amr.so
 #module			g7221.so
 #module			g722.so
 #module			g726.so
-#-module			g711.so
+module			g711.so
 #module			gsm.so
 #module			l16.so
-#module			speex.so
+#- module			speex.so
 #module			bv32.so
 #module			mpa.so
 #module			codec2.so
@@ -91,12 +91,12 @@ rtp_stats		no
 # Audio filter Modules (in encoding order)
 #module			vumeter.so
 #module			sndfile.so
-#module			speex_aec.so
-#module			speex_pp.so
+#- module			speex_aec.so
+#- module			speex_pp.so
 #module			plc.so
 
 # Audio driver Modules
-#-module			opensles.so
+module			opensles.so
 #module			jack.so
 #module			portaudio.so
 #module			aubridge.so
