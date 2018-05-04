@@ -133,13 +133,13 @@ class MainActivity : AppCompatActivity() {
 
         }
         for (a in assets) {
-            file = File("$path/$a")
-            if (!file.exists()) {
+//            file = File("$path/$a")
+//            if (!file.exists() || filets < srcts) {
                 Log.d("Baresip", "Copying asset $a")
                 copyAssetToFile(a, "$path/$a")
-            } else {
-                Log.d("Baresip", "Asset $a already copied")
-            }
+//            } else {
+//                Log.d("Baresip", "Asset $a already copied")
+//            }
         }
 
         file = File(path, "history")

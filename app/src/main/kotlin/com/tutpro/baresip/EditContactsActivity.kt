@@ -93,7 +93,7 @@ class EditContactsActivity : AppCompatActivity() {
                     continue
                 }
                 MainActivity.contact_add("\"$name\" $uri")
-                if (uri.indexOf(";access") > 0) continue
+                // if (uri.indexOf(";access") > 0) continue
                 uri = uri.substring(1, uri.indexOf(">"))
                 Log.d("Baresip", "Adding contact name/uri: $name/$uri")
                 Contacts.add(Contact(name, uri))

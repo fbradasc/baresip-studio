@@ -34,3 +34,4 @@
 #<sip:foo@test.tutpro.com>;auth_user=foo;auth_pass=xxx;outbound="sip:192.168.43.98:5060;transport=tcp";ptime=20;audio_codecs=OPUS/48000/2,PCMU,PCMA;video_codecs="";regint=600;pubint=0;sipnat=outbound
 
 <sip:b@192.168.2.212>;auth_pass=none;regint=0
+<sip:c@192.168.2.186>;auth_pass=none;regint=0
