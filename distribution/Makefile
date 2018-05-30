@@ -316,7 +316,7 @@ $(UPDATES):
 	@echo
 	@echo "Upgrading $@"
 	@echo
-	cd $(@:_update=) && git pull --all
+	cd $(@:_update=) && git checkout -- . && git pull --all --force
 
 $(TOWIPE):
 	@echo
