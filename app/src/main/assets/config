@@ -213,5 +213,6 @@ ice_mode		full	# {full,lite}
 #zrtp_hash		no  # Disable SDP zrtp-hash (not recommended)
 
 # Menu
+statmode_default        off
 #redial_attempts	3 # Num or <inf>
 #redial_delay		5 # Delay in seconds

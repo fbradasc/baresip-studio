@@ -27,7 +27,7 @@ ANDROID_SDK := /opt/android-sdk
 #     22           6.0
 #     23           7.0
 #
-ANDROID_API := 23
+ANDROID_API := 21
 PLATFORM    := android-$(ANDROID_API)
 
 

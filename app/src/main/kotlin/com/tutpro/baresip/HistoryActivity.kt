@@ -19,7 +19,6 @@ import java.util.GregorianCalendar
 class HistoryActivity : AppCompatActivity() {
 
     internal var uaHistory = ArrayList<HistoryRow>()
-    internal var posAtHistory = ArrayList<Int>()
     internal var aor: String = ""
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +29,7 @@ class HistoryActivity : AppCompatActivity() {
 
         val b = intent.extras
         aor = b.getString("aor")
-        generate_ua_history(aor)
+        aorGenerateHistory(aor)
 
         val adapter = HistoryListAdapter(this, uaHistory)
         listview.adapter = adapter
@@ -44,9 +43,23 @@ class HistoryActivity : AppCompatActivity() {
         listview.onItemLongClickListener = AdapterView.OnItemLongClickListener { _, _, pos, _ ->
             val dialogClickListener = DialogInterface.OnClickListener { _, which ->
                 when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-                        History.removeAt(posAtHistory[pos])
-                        generate_ua_history(aor)
+                    DialogInterface.BUTTON_NEUTRAL -> {
+                        ContactsActivity.contactNames.add("New Name")
+                        if (uaHistory[pos].peerDomain == "")
+                            ContactsActivity.contactURIs.add(uaHistory[pos].peerURI)
+                        else
+                            ContactsActivity.contactURIs.add("sip:${uaHistory[pos].peerURI}" +
+                                    "@" + uaHistory[pos].peerDomain)
+                        ContactsActivity.posAtContacts.add(ContactsActivity.contactNames.size)
+                        ContactsActivity.saveContacts()
+                        val i = Intent(this, ContactActivity::class.java)
+                        val lb = Bundle()
+                        lb.putInt("index", ContactsActivity.contactNames.size - 1)
+                        i.putExtras(lb)
+                        startActivityForResult(i, MainActivity.CONTACT_CODE)
+                    }
+                    DialogInterface.BUTTON_NEGATIVE -> {
+                        removeUaHistoryAt(pos)
                         if (uaHistory.size == 0) {
                             val i = Intent()
                             setResult(Activity.RESULT_CANCELED, i)
@@ -54,16 +67,18 @@ class HistoryActivity : AppCompatActivity() {
                         }
                         adapter.notifyDataSetChanged()
                     }
-                    DialogInterface.BUTTON_NEGATIVE -> {
+                    DialogInterface.BUTTON_POSITIVE -> {
                     }
                 }
             }
             val builder = AlertDialog.Builder(this@HistoryActivity,
                     R.style.Theme_AppCompat)
-            builder.setMessage("Do you want to delete " +
-                    History[pos].peerURI + "?")
-                    .setPositiveButton("Yes", dialogClickListener)
-                    .setNegativeButton("No", dialogClickListener).show()
+            builder.setMessage("Do you want to add ${uaHistory[pos].peerURI} to contacs or " +
+                    "delete it from call history?")
+                    .setPositiveButton("Cancel", dialogClickListener)
+                    .setNegativeButton("Delete History", dialogClickListener)
+                    .setNeutralButton("Add Contact", dialogClickListener)
+                    .show()
             true
         }
 
@@ -73,7 +88,7 @@ class HistoryActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                Log.d("Baresip", "Back array was pressed")
+                Log.d("Baresip", "Back array was pressed at History")
                 val i = Intent()
                 setResult(Activity.RESULT_CANCELED, i)
                 finish()
@@ -82,40 +97,50 @@ class HistoryActivity : AppCompatActivity() {
         return true
     }
 
-    private fun generate_ua_history(aor: String) {
+    private fun aorGenerateHistory(aor: String) {
         uaHistory.clear()
-        posAtHistory.clear()
-        for (i in History.indices.reversed()) {
-            val h = History[i]
+        for (i in MainActivity.history.indices.reversed()) {
+            val h = MainActivity.history[i]
             if (h.aor == aor) {
                 var peer_uri = h.peerURI
+                var peer_domain = ""
                 if (Utils.uriHostPart(peer_uri) == Utils.uriHostPart(aor)) {
                     peer_uri = Utils.uriUserPart(peer_uri)
+                    peer_domain = Utils.uriHostPart(aor)
                 }
-                val time: String
-                if (isToday(h.time)) {
-                    val fmt = SimpleDateFormat("HH:mm")
-                    time = fmt.format(h.time.time)
+                var direction: Int
+                if (h.direction == "in")
+                    if (h.connected)
+                        direction = R.drawable.arrow_down_green
+                    else
+                        direction = R.drawable.arrow_down_red
+                else
+                    if (h.connected)
+                        direction = R.drawable.arrow_up_green
+                    else
+                        direction = R.drawable.arrow_up_red
+                if (uaHistory.isNotEmpty() && (uaHistory.last().peerURI == peer_uri)) {
+                    uaHistory.last().directions.add(direction)
+                    uaHistory.last().indexes.add(i)
                 } else {
-                    val fmt = SimpleDateFormat("MMM dd")
-                    time = fmt.format(h.time.time)
-                }
-                if (h.direction == "in") {
-                    if (h.connected) {
-                        uaHistory.add(HistoryRow(peer_uri, R.drawable.arrow_down_green, time))
+                    val time: String
+                    if (isToday(h.time)) {
+                        val fmt = SimpleDateFormat("HH:mm")
+                        time = fmt.format(h.time.time)
                     } else {
-                        uaHistory.add(HistoryRow(peer_uri, R.drawable.arrow_down_red, time))
+                        val fmt = SimpleDateFormat("dd.MM")
+                        time = fmt.format(h.time.time)
                     }
-                } else {
-                    if (h.connected) {
-                        uaHistory.add(HistoryRow(peer_uri, R.drawable.arrow_up_green, time))
-                    } else {
-                        uaHistory.add(HistoryRow(peer_uri, R.drawable.arrow_up_red, time))
-                    }
+                    uaHistory.add(HistoryRow(peer_uri, peer_domain, direction, time, i))
                 }
-                posAtHistory.add(i)
             }
         }
+    }
+
+    private fun removeUaHistoryAt(i: Int) {
+        for (index in uaHistory[i].indexes)
+            MainActivity.history.removeAt(index)
+        uaHistory.removeAt(i)
     }
 
     private fun isToday(time: GregorianCalendar): Boolean {
@@ -123,36 +148,6 @@ class HistoryActivity : AppCompatActivity() {
         return now.get(Calendar.YEAR) == time.get(Calendar.YEAR) &&
                 now.get(Calendar.MONTH) == time.get(Calendar.MONTH) &&
                 now.get(Calendar.DAY_OF_MONTH) == time.get(Calendar.DAY_OF_MONTH)
-    }
-
-    companion object {
-
-        var History: ArrayList<History> = ArrayList()
-
-        fun aorHistory(aor: String): Int {
-            var size = 0;
-            for (h in History) {
-                if (h.aor == aor) size++
-            }
-            return size
-        }
-
-        fun callHasHistory(ua: String, call: String): Boolean {
-            for (h in History) {
-                if (h.ua == ua && h.call == call) return true
-            }
-            return false
-        }
-
-        fun aorRemoveHistory(aor: String) {
-            for (h in History) {
-                if (h.aor == aor) {
-                    History.remove(h)
-                    return
-                }
-            }
-        }
-
     }
 
 }
